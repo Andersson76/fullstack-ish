@@ -14,18 +14,14 @@ function App() {
   const [newTask, setNewTask] = useState("");
 
   useEffect(() => {
-    fetch("/api") // Anropa backend API:et
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
+    fetch("/api/tasks") // Anropa backend API:et
+      .then((response) => response.json())
       .then((data) => setTasks(data))
       .catch((error) =>
         console.error("There was a problem with the fetch operation:", error)
       );
   }, []);
+
   const addTask = () => {
     fetch("/api/tasks", {
       method: "POST",
@@ -37,6 +33,30 @@ function App() {
       .then((response) => response.json())
       .then((task) => setTasks([...tasks, task]));
   };
+
+  const deleteTask = (id: number) => {
+    fetch(`/api/tasks/${id}`, { method: "DELETE" })
+      .then(() => setTasks(tasks.filter((task) => task.id !== id)))
+      .catch((error) =>
+        console.error("There was a problem with the delete operation:", error)
+      );
+  };
+
+  const toggleTaskStatus = (id: number, currentStatus: string) => {
+    const newStatus = currentStatus === "pending" ? "completed" : "pending";
+    fetch(`/api/tasks/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: newStatus }),
+    })
+      .then((response) => response.json())
+      .then((updatedTask) =>
+        setTasks(tasks.map((task) => (task.id === id ? updatedTask : task)))
+      );
+  };
+
   return (
     <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
       <div className="flex justify-center space-x-4">
@@ -68,8 +88,26 @@ function App() {
       <ul className="w-full max-w-md">
         {tasks.map((task) => (
           <li key={task.id} className="bg-white p-4 my-2 rounded shadow">
-            <h2 className="text-lg font-semibold">{task.title}</h2>
-            <p className="text-gray-600">Status: {task.status}</p>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-600">
+                {task.title}
+              </h2>
+              <p className="text-gray-600">Status: {task.status}</p>
+            </div>
+            <div className="space-x-2">
+              <button
+                onClick={() => toggleTaskStatus(task.id, task.status)}
+                className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                {task.status === "pending" ? "Mark as Done" : "Mark as Pending"}
+              </button>
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Radera
+              </button>
+            </div>
           </li>
         ))}
       </ul>

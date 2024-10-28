@@ -35,13 +35,20 @@ app.post("/api/tasks", async (request, response) => {
 
 // Uppdatera en uppgift
 app.put("/api/tasks/:id", async (request, response) => {
+  console.log("Received PUT request for task ID:", request.params.id); // Lägg till denna rad
   const { id } = request.params;
   const { title, status } = request.body;
-  const result = await client.query(
-    "UPDATE tasks SET title = $1, status = $2 WHERE id = $3 RETURNING *",
-    [title, status, id]
-  );
-  response.send(result.rows[0]);
+
+  try {
+    const result = await client.query(
+      "UPDATE tasks SET title = $1, status = $2 WHERE id = $3 RETURNING *",
+      [title || "", status, id]
+    );
+    response.send(result.rows[0]);
+  } catch (error) {
+    console.error("Error updating task:", error);
+    response.status(500).send({ error: "Internal server error" });
+  }
 });
 
 // Ta bort en uppgift
