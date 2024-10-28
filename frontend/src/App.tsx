@@ -11,6 +11,7 @@ type Task = {
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTask, setNewTask] = useState("");
 
   useEffect(() => {
     fetch("/api") // Anropa backend API:et
@@ -20,30 +21,55 @@ function App() {
         }
         return response.json();
       })
-      .then((data) => {
-        setTasks(data); // Spara data i state
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
+      .then((data) => setTasks(data))
+      .catch((error) =>
+        console.error("There was a problem with the fetch operation:", error)
+      );
   }, []);
-
+  const addTask = () => {
+    fetch("/api/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title: newTask, status: "pending" }),
+    })
+      .then((response) => response.json())
+      .then((task) => setTasks([...tasks, task]));
+  };
   return (
-    <div>
-      <div>
+    <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
+      <div className="flex justify-center space-x-4">
         <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
+          <img src={viteLogo} className="w-12 h-12" alt="Vite logo" />
         </a>
         <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
+          <img src={reactLogo} className="w-12 h-12" alt="React logo" />
         </a>
       </div>
-      <h1>Uppgiftshanterare</h1>
-      <ul>
+      <h1 className="text-3xl font-bold mt-6">Uppgiftshanterare</h1>
+
+      <div className="my-4">
+        <input
+          type="text"
+          className="border rounded p-2"
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          placeholder="Lägg till en ny uppgift"
+        />
+        <button
+          onClick={addTask}
+          className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Lägg till
+        </button>
+      </div>
+
+      <ul className="w-full max-w-md">
         {tasks.map((task) => (
-          <li key={task.id}>
-            <h2>{task.title}</h2>
-            <p>Status: {task.status}</p>
+          <li key={task.id} className="bg-white p-4 my-2 rounded shadow">
+            <h2 className="text-lg font-semibold">{task.title}</h2>
+            <p className="text-gray-600">Status: {task.status}</p>
           </li>
         ))}
       </ul>
