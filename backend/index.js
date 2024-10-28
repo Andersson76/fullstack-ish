@@ -3,17 +3,21 @@ const express = require("express"),
 
 const app = express();
 
-//Frontend vill ha /
+//API rutten
 app.get("/api", (_request, response) => {
   response.send({ hello: "World" });
 });
 
-//Backend vill ha/
-app.use(express.static(path.join(path.resolve(), "dist")));
-console.log(path.resolve());
+// Servera frontendens byggda filer
+app.use(express.static(path.join(__dirname, "dist")));
 
-//Det som kommer först vinner
+// Fallback för alla andra rutter
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
 
-app.listen(3000, () => {
-  console.log("Redo på http://localhost:3000/");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });

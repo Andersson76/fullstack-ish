@@ -6,12 +6,13 @@ import { useEffect } from "react";
 
 function App() {
   const [count, setCount] = useState(0);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetch("/api")
       .then((response) => response.json())
       .then((result) => {
-        alert(`Hello ${result.hello}!`);
+        setMessage(result.hello);
       });
   }, []);
 
@@ -26,6 +27,7 @@ function App() {
         </a>
       </div>
       <h1>Vite + React</h1>
+      <p>{message && `Hello ${message}!`}</p>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
