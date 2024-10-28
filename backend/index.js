@@ -1,7 +1,22 @@
-const express = require("express"),
-  path = require("path");
+const dotenv = require("dotenv"),
+  { Client } = require("pg");
+
+dotenv.config();
+
+const express = require("express");
+const cors = require("cors");
+
+const path = require("path");
 
 const app = express();
+
+const client = new Client({
+  connectionString: process.env.PGURI,
+});
+
+client.connect();
+
+app.use(cors());
 
 //API rutten
 app.get("/api", (_request, response) => {
