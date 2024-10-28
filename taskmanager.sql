@@ -12,3 +12,9 @@ CREATE TABLE tasks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
 );
+
+INSERT INTO categories (name) VALUES ('Arbete');
+
+INSERT INTO tasks (title, description, status, due_date, category_id)
+
+VALUES ('Lär dig PostgreSQL', 'Gå igenom PostgreSQL-dokumentation', 'pending', '2024-12-31', 1);
