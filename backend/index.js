@@ -19,8 +19,12 @@ client.connect();
 app.use(cors());
 
 //API rutten
-app.get("/api", (_request, response) => {
-  response.send({ hello: "World" });
+app.get("/api", async (_request, response) => {
+  const { rows } = await client.query(
+    'SELECT * FROM tasks WHERE status = "pending"'
+  );
+
+  response.send(rows);
 });
 
 // Servera frontendens byggda filer
