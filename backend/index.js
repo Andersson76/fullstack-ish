@@ -20,9 +20,7 @@ app.use(cors());
 
 //API rutten
 app.get("/api", async (_request, response) => {
-  const { rows } = await client.query(
-    'SELECT * FROM tasks WHERE status = "pending"'
-  );
+  const { rows } = await client.query("SELECT * FROM tasks");
 
   response.send(rows);
 });
