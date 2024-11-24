@@ -1,25 +1,20 @@
 import { useState, useEffect } from "react";
+import { Task } from "../interfaces/task";
+import TaskItem from "./components/TaskItem";
+
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 
-export type Task = {
-  id: number;
-  title: string;
-  status: string;
-};
-
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTask, setNewTask] = useState("");
+  const [newTask, setNewTask] = useState<string>("");
 
   useEffect(() => {
-    fetch("/api/tasks") // Anropa backend API:et
+    fetch("/api/tasks")
       .then((response) => response.json())
       .then((data) => setTasks(data))
-      .catch((error) =>
-        console.error("There was a problem with the fetch operation:", error)
-      );
+      .catch((error) => console.error("There was a problem fetching:", error));
   }, []);
 
   const addTask = () => {
@@ -31,7 +26,10 @@ function App() {
       body: JSON.stringify({ title: newTask, status: "pending" }),
     })
       .then((response) => response.json())
-      .then((task) => setTasks([...tasks, task]));
+      .then((task) => {
+        setTasks([...tasks, task]);
+        setNewTask("");
+      });
   };
 
   const deleteTask = (id: number) => {
@@ -53,7 +51,11 @@ function App() {
     })
       .then((response) => response.json())
       .then((updatedTask) =>
-        setTasks(tasks.map((task) => (task.id === id ? updatedTask : task)))
+        setTasks(
+          tasks.map((task) =>
+            task.id === id ? { ...task, status: updatedTask.status } : task
+          )
+        )
       );
   };
 
@@ -86,31 +88,14 @@ function App() {
           Lägg till
         </button>
       </div>
-
       <ul className="w-full max-w-md">
         {tasks.map((task) => (
-          <li key={task.id} className="bg-white p-4 my-2 rounded shadow">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-600">
-                {task.title}
-              </h2>
-              <p className="text-gray-600">Status: {task.status}</p>
-            </div>
-            <div className="space-x-2">
-              <button
-                onClick={() => toggleTaskStatus(task.id, task.status)}
-                className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-              >
-                {task.status === "pending" ? "Mark as Done" : "Mark as Pending"}
-              </button>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Radera
-              </button>
-            </div>
-          </li>
+          <TaskItem
+            key={task.id}
+            task={task}
+            onToggleStatus={toggleTaskStatus}
+            onDelete={deleteTask}
+          />
         ))}
       </ul>
     </div>

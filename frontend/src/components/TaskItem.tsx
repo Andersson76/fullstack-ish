@@ -31,6 +31,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
         >
           Radera
         </button>
+        <div className="bg-blue">
+          <h1 className="text-green">Hej</h1>
+        </div>
       </div>
     </li>
   );
