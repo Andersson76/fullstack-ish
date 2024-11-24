@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Task } from "../interfaces/task";
+import { TaskApiResponse } from "../interfaces/apiResponse";
 import TaskItem from "./components/TaskItem";
 
 import reactLogo from "./assets/react.svg";
@@ -13,7 +14,13 @@ function App() {
   useEffect(() => {
     fetch("/api/tasks")
       .then((response) => response.json())
-      .then((data) => setTasks(data))
+      .then((data: TaskApiResponse) => {
+        if (data.success) {
+          setTasks(data.tasks);
+        } else {
+          console.error(data.message);
+        }
+      })
       .catch((error) => console.error("There was a problem fetching:", error));
   }, []);
 
