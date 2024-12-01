@@ -1,11 +1,10 @@
-const dotenv = require("dotenv"),
-  { Client } = require("pg");
+import dotenv from "dotenv";
+import express, { Request, Response } from "express";
+import cors from "cors";
+import path from "path";
+import { Client } from "pg";
 
 dotenv.config();
-
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -15,15 +14,15 @@ const client = new Client({
   connectionString: process.env.PGURI,
 });
 
-client.connect();
+client.connect().catch((error) => {
+  console.error("Failed to connect to the database:", error);
+});
 
-//Hämta alla uppgifter
 app.get("/api/tasks", async (_request, response) => {
   const { rows } = await client.query("SELECT * FROM tasks");
   response.send(rows);
 });
 
-// Skapa en ny uppgift
 app.post("/api/tasks", async (request, response) => {
   const { title, status } = request.body;
   const result = await client.query(
@@ -33,9 +32,8 @@ app.post("/api/tasks", async (request, response) => {
   response.status(201).send(result.rows[0]);
 });
 
-// Uppdatera en uppgift
 app.put("/api/tasks/:id", async (request, response) => {
-  console.log("Received PUT request for task ID:", request.params.id); // Lägg till denna rad
+  console.log("Received PUT request for task ID:", request.params.id);
   const { id } = request.params;
   const { title, status } = request.body;
 
@@ -51,7 +49,6 @@ app.put("/api/tasks/:id", async (request, response) => {
   }
 });
 
-// Ta bort en uppgift
 app.delete("/api/tasks/:id", async (request, response) => {
   const { id } = request.params;
   await client.query("DELETE FROM tasks WHERE id = $1", [id]);
