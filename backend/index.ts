@@ -18,47 +18,58 @@ client.connect().catch((error) => {
   console.error("Failed to connect to the database:", error);
 });
 
-app.get("/api/tasks", async (_request, response) => {
-  const { rows } = await client.query("SELECT * FROM tasks");
-  response.send(rows);
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const { rows } = await client.query("SELECT * FROM tasks");
+    res.send({ success: true, tasks: rows });
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).send({ success: false, message: "Internal server error" });
+  }
 });
 
-app.post("/api/tasks", async (request, response) => {
-  const { title, status } = request.body;
-  const result = await client.query(
-    "INSERT INTO tasks (title, status) VALUES ($1, $2) RETURNING *",
-    [title, status]
-  );
-  response.status(201).send(result.rows[0]);
+app.post("/api/tasks", async (req, res) => {
+  const { title, status } = req.body;
+  try {
+    const result = await client.query(
+      "INSERT INTO tasks (title, status) VALUES ($1, $2) RETURNING *",
+      [title, status]
+    );
+    res.status(201).send(result.rows[0]);
+  } catch (error) {
+    console.error("Error creating task:", error);
+  }
 });
 
-app.put("/api/tasks/:id", async (request, response) => {
-  console.log("Received PUT request for task ID:", request.params.id);
-  const { id } = request.params;
-  const { title, status } = request.body;
-
+app.put("/api/tasks/:id", async (req, res) => {
+  const { id } = req.params;
+  const { title, status } = req.body;
   try {
     const result = await client.query(
       "UPDATE tasks SET title = $1, status = $2 WHERE id = $3 RETURNING *",
       [title || "", status, id]
     );
-    response.send(result.rows[0]);
+    res.send(result.rows[0]);
   } catch (error) {
     console.error("Error updating task:", error);
-    response.status(500).send({ error: "Internal server error" });
+    res.status(500).send({ error: "Internal server error" });
   }
 });
 
-app.delete("/api/tasks/:id", async (request, response) => {
-  const { id } = request.params;
-  await client.query("DELETE FROM tasks WHERE id = $1", [id]);
-  response.send({ message: "Task deleted" });
+app.delete("/api/tasks/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await client.query("DELETE FROM tasks WHERE id = $1", [id]);
+
+    res.send({ success: true, message: "Task deleted" });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+  }
 });
 
 app.use(express.static(path.join(__dirname, "dist")));
 
-// Fallback för alla andra rutter
-app.get("*", (_req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
