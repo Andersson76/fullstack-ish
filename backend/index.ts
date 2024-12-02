@@ -24,7 +24,9 @@ app.get("/api/tasks", async (req, res) => {
     res.send({ success: true, tasks: rows });
   } catch (error) {
     console.error("Error fetching tasks:", error);
-    res.status(500).send({ success: false, message: "Internal server error" });
+    res
+      .status(500)
+      .send({ success: false, message: "Failed to fetch tasks from database" });
   }
 });
 
@@ -38,6 +40,9 @@ app.post("/api/tasks", async (req, res) => {
     res.status(201).send(result.rows[0]);
   } catch (error) {
     console.error("Error creating task:", error);
+    res
+      .status(500)
+      .send({ success: false, message: "Failed to post to database" });
   }
 });
 
@@ -45,14 +50,27 @@ app.put("/api/tasks/:id", async (req, res) => {
   const { id } = req.params;
   const { title, status } = req.body;
   try {
-    const result = await client.query(
-      "UPDATE tasks SET title = $1, status = $2 WHERE id = $3 RETURNING *",
-      [title || "", status, id]
+    const { rows: existingRows } = await client.query(
+      "SELECT * FROM tasks WHERE id = $1",
+      [id]
     );
-    res.send(result.rows[0]);
+    const existingTask = existingRows[0];
+
+    const updatedTitle = title !== undefined ? title : existingTask.title;
+    const updatedStatus = status !== undefined ? status : existingTask.status;
+
+    const { rows } = await client.query(
+      "UPDATE tasks SET title = $1, status = $2 WHERE id = $3 RETURNING *",
+      [updatedTitle, updatedStatus, id]
+    );
+
+    res.send(rows[0]);
   } catch (error) {
     console.error("Error updating task:", error);
-    res.status(500).send({ error: "Internal server error" });
+    res.status(500).send({
+      success: false,
+      message: "Failed to making changes in the database",
+    });
   }
 });
 
@@ -64,6 +82,9 @@ app.delete("/api/tasks/:id", async (req, res) => {
     res.send({ success: true, message: "Task deleted" });
   } catch (error) {
     console.error("Error deleting task:", error);
+    res
+      .status(500)
+      .send({ success: false, message: "Failed to delete in database" });
   }
 });
 
